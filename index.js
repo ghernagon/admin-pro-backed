@@ -3,11 +3,18 @@ const express = require('express');
 const cors = require('cors');
 const { dbConnection } = require('./database/config');
 
+
+// Middlewares
 // Create express server
 const app = express();
 
 // Config CORS
 app.use( cors() );
+
+// Read and parse body
+app.use( express.json() );
+
+// End Middlewares
 
 // Connect to DB
 dbConnection();
@@ -16,12 +23,7 @@ dbConnection();
 // console.log(process.env);
 
 // Routes
-app.get('/', (req, res) => {
-    res.json({
-        ok: true,
-        msg: 'Hello World'
-    });
-});
+app.use('/api/users', require('./routes/users.routes'));
 
 
 app.listen( process.env.PORT, () => {
