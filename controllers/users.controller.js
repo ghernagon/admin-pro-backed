@@ -1,5 +1,6 @@
-const { response } = require('express');
 const bcrypt = require('bcryptjs');
+const { response } = require('express');
+const { genarateJWT } = require('../helpers/jwt');
 
 const User = require('../models/user.model');
 
@@ -33,12 +34,17 @@ const createUser = async(req, res = response) => {
 
         await user.save();
 
+        // Generate JWT
+        const token =  await genarateJWT(user.id);
+
         res.json({
             ok: true,
-            user
+            user,
+            token
         });
         
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             ok: false,
             msg: 'Unhandled error, check logs...'
@@ -63,14 +69,18 @@ const updateUser = async(req, res = response) => {
         }
         
         // Update User
-        const fields = req.body;
+        
+        // v1 - no optimized
+        // const fields = req.body;
+        // Remove not updatable fields
+        // delete fields.password;
+        // delete fields.google;
 
-        // Check if user try to replace email
-        if (userDB.email === req.body.email) {
-            delete fields.email;
-        } else {
-            // Check if new email already exist in db
-            const emailAlreadyExist = await User.findOne({ email: req.body.email });
+        // v2 - optimized using spread operator
+        const { password, google, email, ...fields } = req.body;
+
+        if (userDB.email !== email) {
+            const emailAlreadyExist = await User.findOne({ email });
             if (emailAlreadyExist) {
                 return res.status(400).json({
                     ok: false,
@@ -79,9 +89,7 @@ const updateUser = async(req, res = response) => {
             }
         }
 
-        // Remove not updatable fields
-        delete fields.password;
-        delete fields.google;
+        fields.email = email;
 
         // { new: true } tell mongoose we want to return the updated data instead of current data (got by find)
         const updatedUser = await User.findByIdAndUpdate(uid, fields, { new: true });
@@ -96,11 +104,41 @@ const updateUser = async(req, res = response) => {
             msg: 'Unhandled error, check logs...'
         })
     }
-}
+};
 
+
+const deleteUser = async(req, res = response) => {
+    const uid = req.params.id;
+
+    try {
+        const userDB = await User.findById(uid);
+
+        if (!userDB) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'User does not exist'
+            })
+        }
+
+        // We should not delete the DB data, we should disable the user instead of delete it        
+        await User.findByIdAndDelete( uid );
+
+        return res.json({
+            ok: true,
+            msg: 'User has been deleted...'
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Unhandled error, check logs...'
+        })
+    }
+};
 
 module.exports = { 
     getUsers,
     createUser,
-    updateUser
+    updateUser,
+    deleteUser
 };
