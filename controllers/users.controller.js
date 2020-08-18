@@ -5,11 +5,32 @@ const { genarateJWT } = require('../helpers/jwt');
 const User = require('../models/user.model');
 
 const getUsers = async(req, res) => {
-    const users = await User.find({}, 'nombre email role google');
+
+    const from = Number(req.query.from) || 0;
+
+    // * Triggering multiple await operations series, could lead to slow performance 
+    // const users = await User
+    //                     .find({}, 'nombre email role google')
+    //                     .skip( from )
+    //                     .limit( 5 )
+
+    // const total = await User.count();
+
+
+    // * Destructuring a promise all is a good choice, it trigger all async operations in parallel and then resolve.
+    const [ users, total ] = await Promise.all([
+        User
+            .find({}, 'nombre email role google')
+            .skip( from )
+            .limit( 5 ),
+            
+        User.count()
+    ])
 
     res.json({
         ok: true,
-        users
+        users,
+        total
     });
 };
 
