@@ -20,11 +20,11 @@ const getUsers = async(req, res) => {
     // * Destructuring a promise all is a good choice, it trigger all async operations in parallel and then resolve.
     const [ users, total ] = await Promise.all([
         User
-            .find({}, 'nombre email role google')
+            .find({}, 'nombre email role google img')
             .skip( from )
             .limit( 5 ),
             
-        User.count()
+        User.countDocuments()
     ])
 
     res.json({
