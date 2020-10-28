@@ -1,9 +1,10 @@
 const { response } = require('express')
 const { v4: uuidv4 } = require('uuid');
 const { updateImage } = require('../helpers/updateImage');
+const path = require('path');
+const fs = require('fs');
 
 const uploadFile = (req, res = response) => {
-
     const collectionName = req.params.collectionName;
     const id = req.params.id;
 
@@ -64,9 +65,27 @@ const uploadFile = (req, res = response) => {
         msg: 'file upload ok',
         newFileName
     });
+}
+
+
+
+const returnFile = (req, res = response) => {
+    const collectionName = req.params.collectionName;
+    const fileName = req.params.file;
+
+    const filePath = path.join( __dirname, `../uploads/${collectionName}/${fileName}` );
+
+    if (fs.existsSync(filePath)) {
+        res.sendFile( filePath );
+    } else {
+        // Default image
+        const filePath = path.join( __dirname, `../uploads/no-img.png` );
+        res.sendFile(filePath);
+    }
 
 }
 
 module.exports = {
-    uploadFile
+    uploadFile,
+    returnFile
 }
