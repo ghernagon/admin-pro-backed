@@ -18,7 +18,7 @@ const validateJWT = (req, res, next) => {
         // Validate Token
         const { uid } = jwt.verify( token, process.env.JWT_SECRET );
         
-        // Send current user uid with within request
+        // Send current user uid within request
         req.uid = uid;
         
         next();

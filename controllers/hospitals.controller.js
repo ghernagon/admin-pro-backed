@@ -37,17 +37,59 @@ const createHospital = async(req, res = response) => {
 }
 
 const updateHospital = async(req, res = response) => {
-    res.json({
-        ok: true,
-        msg: 'updateHospital'
-    })
+    const id = req.params.id; // Hospital id
+    const uid = req.uid; // Current User
+
+    try {
+        const hospitalDB = await Hospital.findById(id);
+
+        if (!hospitalDB) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Hospital not found'
+            });
+        }
+
+        const hospitalChange = { ...req.body, author: uid }
+        const updatedHospital = await Hospital.findByIdAndUpdate( id, hospitalChange, { new: true } );
+
+        res.json({
+            ok: true,
+            hospital: updatedHospital
+        })
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Call system administrator'
+        })
+    }
 }
 
 const deleteHospital = async(req, res = response) => {
-    res.json({
-        ok: true,
-        msg: 'deleteHospital'
-    })
+    const id = req.params.id;
+
+    try {
+        const hospitalDB = await Hospital.findById(id);
+
+        if (!hospitalDB) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Hospital not found'
+            });
+        }
+
+        await Hospital.findByIdAndDelete(id);
+
+        res.json({
+            ok: true,
+            msg: 'Hospital has been deleted'
+        })
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Call system administrator'
+        })
+    }
 }
 
 
