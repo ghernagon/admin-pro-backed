@@ -23,6 +23,9 @@ dbConnection();
 // DotEnv env properties
 // console.log(process.env);
 
+// Public Directory
+app.use( express.static('public') );
+
 // Routes
 app.use('/api/users', require('./routes/users.routes'));
 app.use('/api/login', require('./routes/auth.routes'));
